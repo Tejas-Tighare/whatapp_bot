@@ -35,7 +35,7 @@ export const receiveMessage = async (req, res) => {
   res.sendStatus(200);
 
   try {
-    console.log("🔥 Webhook hit it");
+    console.log("🔥 Webhook hit");
 
     const msg =
       req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
