@@ -1,31 +1,15 @@
 import express from "express";
-import axios from "axios";
+import webhookRoutes from "./routes/webhookRoutes.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-
 app.use(express.json());
 
-app.get("/webhook", (req, res) => {
-  const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
-
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("✅ Webhook verified");
-    return res.status(200).send(challenge);
-  }
-  return res.sendStatus(403);
-});
-
-app.post("/webhook", (req, res) => {
-  console.log("🔥 WEBHOOK HIT");
-  console.log(JSON.stringify(req.body, null, 2));
-  res.sendStatus(200);
-});
+app.use("/", webhookRoutes);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`🚀 WhatsApp Bot running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

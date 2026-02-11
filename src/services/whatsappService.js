@@ -2,26 +2,18 @@ import axios from "axios";
 import { config } from "../config/whatsapp.js";
 
 export const sendMessage = async (to, message) => {
-
-  // ✅ STOP API call if credentials missing
-  if (
-    !config.token ||
-    !config.phoneId ||
-    config.token === "PASTE_LATER" ||
-    config.phoneId === "PASTE_LATER"
-  ) {
-    console.log("⚠ WhatsApp not configured yet");
-    console.log("To:", to);
-    console.log("Message:", message);
-    return;
-  }
-
   try {
+    if (!config.token || !config.phoneId) {
+      console.log("⚠ WhatsApp credentials missing");
+      return;
+    }
+
     await axios.post(
-      `https://graph.facebook.com/v18.0/${config.phoneId}/messages`,
+      `https://graph.facebook.com/v19.0/${config.phoneId}/messages`,
       {
         messaging_product: "whatsapp",
         to,
+        type: "text",
         text: { body: message }
       },
       {
@@ -31,7 +23,7 @@ export const sendMessage = async (to, message) => {
         }
       }
     );
-  } catch (error) {
-    console.error("❌ WhatsApp API Error:", error.response?.data || error.message);
+  } catch (err) {
+    console.error("WhatsApp API Error:", err.response?.data || err.message);
   }
 };
