@@ -1,3 +1,37 @@
+import { sendMessage } from "../services/whatsappService.js";
+import { DIRECTORY } from "../data/directoryData.js";
+
+// ---------------- IN-MEMORY SESSION STORE ----------------
+
+const sessions = {};
+const processedIds = new Set(); // for deduplication
+
+// ---------------- VERIFY WEBHOOK ----------------
+
+export const verifyWebhook = (req, res) => {
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+    return res.status(200).send(challenge);
+  }
+
+  return res.sendStatus(403);
+};
+
+// ---------------- HELPER ----------------
+
+function buildList(title, arr) {
+  let msg = `${title}\n\n`;
+  arr.forEach((v, i) => {
+    msg += `${i + 1}. ${v}\n`;
+  });
+  return msg;
+}
+
+// ---------------- RECEIVE MESSAGE ----------------
+
 export const receiveMessage = async (req, res) => {
   try {
     const msg =
@@ -5,25 +39,16 @@ export const receiveMessage = async (req, res) => {
 
     if (!msg) return res.sendStatus(200);
 
-    // ✅ Only accept text messages
+    // ✅ Accept only text messages
     if (msg.type !== "text") {
       return res.sendStatus(200);
     }
 
-    // ✅ Ignore bot's own messages
-    if (msg.from === "whatsapp_business_account") {
+    // ✅ Deduplicate
+    if (processedIds.has(msg.id)) {
       return res.sendStatus(200);
     }
-
-    // ✅ Deduplicate message IDs
-    const messageId = msg.id;
-    if (!global.processedIds) {
-      global.processedIds = new Set();
-    }
-    if (global.processedIds.has(messageId)) {
-      return res.sendStatus(200);
-    }
-    global.processedIds.add(messageId);
+    processedIds.add(msg.id);
 
     const user = msg.from;
     const text = msg.text.body.trim();
@@ -125,7 +150,8 @@ export const receiveMessage = async (req, res) => {
         reply += `${i + 1}. ${p.name}\n📞 ${p.phone}\n\n`;
       });
 
-      delete sessions[user];
+      delete sessions[user]; // reset
+
       return sendMessage(user, reply);
     }
 
