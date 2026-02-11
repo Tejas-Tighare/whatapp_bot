@@ -1,15 +1,22 @@
 import { sendMessage } from "../services/whatsappService.js";
-import { config } from "../config/whatsapp.js";
 
 export const verifyWebhook = (req, res) => {
-  if (req.query["hub.verify_token"] === config.verifyToken) {
-    return res.send(req.query["hub.challenge"]);
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
+    return res.status(200).send(challenge);
   }
+
   return res.sendStatus(403);
 };
 
 export const receiveMessage = async (req, res) => {
-  const msg = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+
+  const msg =
+    req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
   if (!msg) return res.sendStatus(200);
 
