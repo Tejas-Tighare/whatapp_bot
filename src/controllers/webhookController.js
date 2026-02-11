@@ -1,48 +1,29 @@
-import { sendMessage } from "../services/whatsappService.js";
-import { DIRECTORY } from "../data/directoryData.js";
-import { config } from "../config/whatsapp.js";
-
-// In-memory session store
-const sessions = {};
-
-// ---------------- VERIFY WEBHOOK ----------------
-
-export const verifyWebhook = (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === config.verifyToken) {
-    return res.status(200).send(challenge);
-  }
-
-  return res.sendStatus(403);
-};
-
-// ---------------- HELPER ----------------
-
-function buildList(title, arr) {
-  let msg = `${title}\n\n`;
-  arr.forEach((v, i) => {
-    msg += `${i + 1}. ${v}\n`;
-  });
-  return msg;
-}
-
-// ---------------- RECEIVE MESSAGE ----------------
-
 export const receiveMessage = async (req, res) => {
   try {
     const msg =
       req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-    // No message object
     if (!msg) return res.sendStatus(200);
 
-    // ✅ IMPORTANT FIX: Only handle TEXT messages
-    if (!msg.text?.body) {
+    // ✅ Only accept text messages
+    if (msg.type !== "text") {
       return res.sendStatus(200);
     }
+
+    // ✅ Ignore bot's own messages
+    if (msg.from === "whatsapp_business_account") {
+      return res.sendStatus(200);
+    }
+
+    // ✅ Deduplicate message IDs
+    const messageId = msg.id;
+    if (!global.processedIds) {
+      global.processedIds = new Set();
+    }
+    if (global.processedIds.has(messageId)) {
+      return res.sendStatus(200);
+    }
+    global.processedIds.add(messageId);
 
     const user = msg.from;
     const text = msg.text.body.trim();
@@ -67,9 +48,8 @@ export const receiveMessage = async (req, res) => {
       const cities = Object.keys(DIRECTORY);
       const city = cities[text - 1];
 
-      if (!city) {
+      if (!city)
         return sendMessage(user, "Invalid choice. Try again.");
-      }
 
       s.city = city;
       s.step = "PRABHAG";
@@ -85,9 +65,8 @@ export const receiveMessage = async (req, res) => {
       const prabhags = Object.keys(DIRECTORY[s.city]);
       const prabhag = prabhags[text - 1];
 
-      if (!prabhag) {
+      if (!prabhag)
         return sendMessage(user, "Invalid choice. Try again.");
-      }
 
       s.prabhag = prabhag;
       s.step = "WARD";
@@ -109,9 +88,8 @@ export const receiveMessage = async (req, res) => {
 
       const ward = wards[text - 1];
 
-      if (!ward) {
+      if (!ward)
         return sendMessage(user, "Invalid choice. Try again.");
-      }
 
       s.ward = ward;
       s.step = "SERVICE";
@@ -135,9 +113,8 @@ export const receiveMessage = async (req, res) => {
 
       const service = services[text - 1];
 
-      if (!service) {
+      if (!service)
         return sendMessage(user, "Invalid choice. Try again.");
-      }
 
       const people =
         DIRECTORY[s.city][s.prabhag][s.ward][service];
@@ -148,9 +125,7 @@ export const receiveMessage = async (req, res) => {
         reply += `${i + 1}. ${p.name}\n📞 ${p.phone}\n\n`;
       });
 
-      // Reset conversation
       delete sessions[user];
-
       return sendMessage(user, reply);
     }
 
