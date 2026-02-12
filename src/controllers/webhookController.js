@@ -3,6 +3,7 @@ import { sendMessage } from "../services/whatsappService.js";
 import { config } from "../config/whatsapp.js";
 
 const sessions = {};
+const processedMessages = new Set(); // ✅ Deduplication
 
 export const verifyWebhook = (req, res) => {
   const mode = req.query["hub.mode"];
@@ -20,10 +21,21 @@ const buildList = (title, arr) =>
 
 export const receiveMessage = async (req, res) => {
   try {
-    const msg =
-      req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    const value = req.body.entry?.[0]?.changes?.[0]?.value;
 
-    if (!msg?.text?.body) return res.sendStatus(200);
+    // ✅ Ignore non-message events
+    if (!value?.messages) return res.sendStatus(200);
+
+    const msg = value.messages[0];
+
+    // ✅ Only text messages
+    if (msg.type !== "text") return res.sendStatus(200);
+
+    // ✅ Ignore duplicate WhatsApp retries
+    if (processedMessages.has(msg.id)) {
+      return res.sendStatus(200);
+    }
+    processedMessages.add(msg.id);
 
     const user = msg.from;
     const text = msg.text.body.trim();
@@ -34,7 +46,7 @@ export const receiveMessage = async (req, res) => {
 
     const s = sessions[user];
 
-    // START
+    // ================= START =================
     if (text.toLowerCase() === "hi") {
       s.step = "PRABHAG";
       return sendMessage(
@@ -43,17 +55,19 @@ export const receiveMessage = async (req, res) => {
       );
     }
 
-    // PRABHAG
+    // ================= PRABHAG =================
     if (s.step === "PRABHAG") {
       const index = parseInt(text);
-      if (isNaN(index))
-        return sendMessage(user, "Please enter valid number.");
+      if (isNaN(index)) {
+        return sendMessage(user, "Enter valid number.");
+      }
 
       const prabhag =
         Object.keys(DIRECTORY.Amravati)[index - 1];
 
-      if (!prabhag)
+      if (!prabhag) {
         return sendMessage(user, "Invalid choice.");
+      }
 
       s.prabhag = prabhag;
       s.step = "WARD";
@@ -67,17 +81,19 @@ export const receiveMessage = async (req, res) => {
       );
     }
 
-    // WARD
+    // ================= WARD =================
     if (s.step === "WARD") {
       const index = parseInt(text);
-      if (isNaN(index))
-        return sendMessage(user, "Please enter valid number.");
+      if (isNaN(index)) {
+        return sendMessage(user, "Enter valid number.");
+      }
 
       const ward =
         Object.keys(DIRECTORY.Amravati[s.prabhag])[index - 1];
 
-      if (!ward)
+      if (!ward) {
         return sendMessage(user, "Invalid choice.");
+      }
 
       s.ward = ward;
       s.step = "SERVICE";
@@ -97,11 +113,12 @@ export const receiveMessage = async (req, res) => {
       );
     }
 
-    // SERVICE
+    // ================= SERVICE =================
     if (s.step === "SERVICE") {
       const index = parseInt(text);
-      if (isNaN(index))
-        return sendMessage(user, "Please enter valid number.");
+      if (isNaN(index)) {
+        return sendMessage(user, "Enter valid number.");
+      }
 
       const services =
         DIRECTORY.Amravati[s.prabhag][s.ward].services;
@@ -109,8 +126,9 @@ export const receiveMessage = async (req, res) => {
       const service =
         Object.keys(services)[index - 1];
 
-      if (!service)
+      if (!service) {
         return sendMessage(user, "Invalid choice.");
+      }
 
       const people = services[service];
 
@@ -120,17 +138,19 @@ export const receiveMessage = async (req, res) => {
         reply += `${p.name}\n📞 ${p.phone}\n\n`;
       });
 
+      // ✅ Reset session safely
       sessions[user] = { step: "START" };
 
       return sendMessage(
         user,
-        reply + "\nType 'hi' to start again."
+        reply + "\nType hi to start again."
       );
     }
 
     return res.sendStatus(200);
+
   } catch (err) {
-    console.error("Controller Error:", err);
+    console.error("Webhook Error:", err);
     return res.sendStatus(500);
   }
 };
