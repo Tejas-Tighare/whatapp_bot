@@ -19,76 +19,118 @@ const buildList = (title, arr) =>
   `${title}\n\n` + arr.map((v, i) => `${i + 1}. ${v}`).join("\n");
 
 export const receiveMessage = async (req, res) => {
-  const msg = req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-  if (!msg?.text?.body) return res.sendStatus(200);
+  try {
+    const msg =
+      req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
 
-  const user = msg.from;
-  const text = msg.text.body.trim();
+    if (!msg?.text?.body) return res.sendStatus(200);
 
-  sessions[user] ??= { step: "START" };
-  const s = sessions[user];
+    const user = msg.from;
+    const text = msg.text.body.trim();
 
-  if (text.toLowerCase() === "hi") {
-    s.step = "PRABHAG";
-    return sendMessage(
-      user,
-      buildList("Select Prabhag:", Object.keys(DIRECTORY.Amravati))
-    );
-  }
+    if (!sessions[user]) {
+      sessions[user] = { step: "START" };
+    }
 
-  if (s.step === "PRABHAG") {
-    const p = Object.keys(DIRECTORY.Amravati)[text - 1];
-    if (!p) return sendMessage(user, "Invalid choice");
-    s.prabhag = p;
-    s.step = "WARD";
-    return sendMessage(
-      user,
-      buildList("Select Ward:", Object.keys(DIRECTORY.Amravati[p]))
-    );
-  }
+    const s = sessions[user];
 
-  if (s.step === "WARD") {
-    const w =
-      Object.keys(DIRECTORY.Amravati[s.prabhag])[text - 1];
-    if (!w) return sendMessage(user, "Invalid choice");
+    // START
+    if (text.toLowerCase() === "hi") {
+      s.step = "PRABHAG";
+      return sendMessage(
+        user,
+        buildList("Select Prabhag:", Object.keys(DIRECTORY.Amravati))
+      );
+    }
 
-    s.ward = w;
-    s.step = "SERVICE";
+    // PRABHAG
+    if (s.step === "PRABHAG") {
+      const index = parseInt(text);
+      if (isNaN(index))
+        return sendMessage(user, "Please enter valid number.");
 
-    const member =
-      DIRECTORY.Amravati[s.prabhag][w].member;
+      const prabhag =
+        Object.keys(DIRECTORY.Amravati)[index - 1];
 
-    return sendMessage(
-      user,
-      `👤 Ward Member: ${member}\n\n` +
-      buildList(
-        "Select Service:",
-        Object.keys(
-          DIRECTORY.Amravati[s.prabhag][w].services
+      if (!prabhag)
+        return sendMessage(user, "Invalid choice.");
+
+      s.prabhag = prabhag;
+      s.step = "WARD";
+
+      return sendMessage(
+        user,
+        buildList(
+          "Select Ward:",
+          Object.keys(DIRECTORY.Amravati[prabhag])
         )
-      )
-    );
+      );
+    }
+
+    // WARD
+    if (s.step === "WARD") {
+      const index = parseInt(text);
+      if (isNaN(index))
+        return sendMessage(user, "Please enter valid number.");
+
+      const ward =
+        Object.keys(DIRECTORY.Amravati[s.prabhag])[index - 1];
+
+      if (!ward)
+        return sendMessage(user, "Invalid choice.");
+
+      s.ward = ward;
+      s.step = "SERVICE";
+
+      const member =
+        DIRECTORY.Amravati[s.prabhag][ward].member;
+
+      return sendMessage(
+        user,
+        `👤 Ward Member: ${member}\n\n` +
+          buildList(
+            "Select Service:",
+            Object.keys(
+              DIRECTORY.Amravati[s.prabhag][ward].services
+            )
+          )
+      );
+    }
+
+    // SERVICE
+    if (s.step === "SERVICE") {
+      const index = parseInt(text);
+      if (isNaN(index))
+        return sendMessage(user, "Please enter valid number.");
+
+      const services =
+        DIRECTORY.Amravati[s.prabhag][s.ward].services;
+
+      const service =
+        Object.keys(services)[index - 1];
+
+      if (!service)
+        return sendMessage(user, "Invalid choice.");
+
+      const people = services[service];
+
+      let reply = `Available ${service}:\n\n`;
+
+      people.forEach(p => {
+        reply += `${p.name}\n📞 ${p.phone}\n\n`;
+      });
+
+      sessions[user] = { step: "START" };
+
+      return sendMessage(
+        user,
+        reply + "\nType 'hi' to start again."
+      );
+    }
+
+    return res.sendStatus(200);
+  } catch (err) {
+    console.error("Controller Error:", err);
+    return res.sendStatus(500);
   }
-
-  if (s.step === "SERVICE") {
-    const services =
-      DIRECTORY.Amravati[s.prabhag][s.ward].services;
-
-    const service =
-      Object.keys(services)[text - 1];
-
-    if (!service) return sendMessage(user, "Invalid choice");
-
-    const people = services[service];
-
-    let reply = `Available ${service}:\n\n`;
-    people.forEach(p => {
-      reply += `${p.name}\n📞 ${p.phone}\n\n`;
-    });
-
-    delete sessions[user];
-    return sendMessage(user, reply);
-  }
-
-  res.sendStatus(200);
 };
