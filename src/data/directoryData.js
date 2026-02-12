@@ -10,7 +10,6 @@ export const DIRECTORY = {
         ]
       }
     },
-
     "Prabhag 2": {
       "Ward B": {
         Carpenter: [

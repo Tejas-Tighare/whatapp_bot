@@ -4,7 +4,7 @@ import { config } from "../config/whatsapp.js";
 export const sendMessage = async (to, message) => {
   try {
     if (!config.token || !config.phoneId) {
-      console.log("⚠ WhatsApp credentials missing");
+      console.log("Missing WhatsApp credentials");
       return;
     }
 
@@ -23,7 +23,8 @@ export const sendMessage = async (to, message) => {
         }
       }
     );
-  } catch (err) {
-    console.error("WhatsApp API Error:", err.response?.data || err.message);
+  } catch (error) {
+    console.error("WhatsApp API Error:",
+      error.response?.data || error.message);
   }
 };

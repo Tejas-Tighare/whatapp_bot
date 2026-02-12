@@ -1,57 +1,61 @@
 import { sendMessage } from "../services/whatsappService.js";
 import { DIRECTORY } from "../data/directoryData.js";
-
-// ================= MEMORY =================
+import { config } from "../config/whatsapp.js";
 
 const sessions = {};
 const processedIds = new Set();
 
-// ================= VERIFY =================
+// ---------------- VERIFY ----------------
 
 export const verifyWebhook = (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
 
-  if (mode === "subscribe" && token === process.env.VERIFY_TOKEN) {
-    console.log("✅ Webhook verified");
+  if (mode === "subscribe" && token === config.verifyToken) {
     return res.status(200).send(challenge);
   }
 
   return res.sendStatus(403);
 };
 
-// ================= HELPERS =================
+// ---------------- HELPER ----------------
 
 function buildList(title, arr) {
-  return `${title}\n\n${arr.map((v, i) => `${i + 1}. ${v}`).join("\n")}`;
+  let msg = `${title}\n\n`;
+  arr.forEach((v, i) => {
+    msg += `${i + 1}. ${v}\n`;
+  });
+  return msg;
 }
 
-// ================= RECEIVE MESSAGE =================
+// ---------------- RECEIVE ----------------
 
 export const receiveMessage = async (req, res) => {
-
-  // ACK FAST
-  res.sendStatus(200);
-
   try {
-    console.log("🔥 Webhook hit");
+    const value =
+      req.body.entry?.[0]?.changes?.[0]?.value;
 
-    const msg =
-      req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    // Ignore if no messages field
+    if (!value?.messages) {
+      return res.sendStatus(200);
+    }
 
-    if (!msg) return;
+    const msg = value.messages[0];
 
-    if (msg.type !== "text") return;
+    // Only text messages
+    if (msg.type !== "text" || !msg.text?.body) {
+      return res.sendStatus(200);
+    }
 
-    // Dedup
-    if (processedIds.has(msg.id)) return;
+    // Deduplicate
+    if (processedIds.has(msg.id)) {
+      return res.sendStatus(200);
+    }
     processedIds.add(msg.id);
 
     const user = msg.from;
-    const text = msg.text.body.trim().toLowerCase();
-
-    console.log("From:", user, "Text:", text);
+    const text = msg.text.body.trim();
 
     if (!sessions[user]) {
       sessions[user] = { step: "START" };
@@ -59,114 +63,96 @@ export const receiveMessage = async (req, res) => {
 
     const s = sessions[user];
 
-    // -------- START --------
-    if (text === "hi") {
-      sessions[user] = { step: "CITY" };
-
-      await sendMessage(
+    // START
+    if (text.toLowerCase() === "hi") {
+      s.step = "CITY";
+      return sendMessage(
         user,
         buildList("Select City:", Object.keys(DIRECTORY))
       );
-      return;
     }
 
-    if (s.step === "START") {
-      await sendMessage(user, "Send *hi* to start.");
-      return;
-    }
-
-    // -------- CITY --------
+    // CITY
     if (s.step === "CITY") {
-      const city = Object.keys(DIRECTORY)[Number(text) - 1];
-      if (!city) {
-        await sendMessage(user, "Invalid choice. Try again.");
-        return;
-      }
+      const cities = Object.keys(DIRECTORY);
+      const city = cities[text - 1];
+      if (!city)
+        return sendMessage(user, "Invalid choice. Try again.");
 
       s.city = city;
       s.step = "PRABHAG";
 
-      await sendMessage(
+      return sendMessage(
         user,
         buildList("Select Prabhag:", Object.keys(DIRECTORY[city]))
       );
-      return;
     }
 
-    // -------- PRABHAG --------
+    // PRABHAG
     if (s.step === "PRABHAG") {
-      const prabhag =
-        Object.keys(DIRECTORY[s.city])[Number(text) - 1];
+      const prabhags = Object.keys(DIRECTORY[s.city]);
+      const p = prabhags[text - 1];
+      if (!p)
+        return sendMessage(user, "Invalid choice. Try again.");
 
-      if (!prabhag) {
-        await sendMessage(user, "Invalid choice. Try again.");
-        return;
-      }
-
-      s.prabhag = prabhag;
+      s.prabhag = p;
       s.step = "WARD";
 
-      await sendMessage(
+      return sendMessage(
         user,
-        buildList(
-          "Select Ward:",
-          Object.keys(DIRECTORY[s.city][prabhag])
-        )
+        buildList("Select Ward:",
+          Object.keys(DIRECTORY[s.city][p]))
       );
-      return;
     }
 
-    // -------- WARD --------
+    // WARD
     if (s.step === "WARD") {
-      const ward =
-        Object.keys(DIRECTORY[s.city][s.prabhag])[Number(text) - 1];
+      const wards =
+        Object.keys(DIRECTORY[s.city][s.prabhag]);
 
-      if (!ward) {
-        await sendMessage(user, "Invalid choice. Try again.");
-        return;
-      }
+      const w = wards[text - 1];
+      if (!w)
+        return sendMessage(user, "Invalid choice. Try again.");
 
-      s.ward = ward;
+      s.ward = w;
       s.step = "SERVICE";
 
-      await sendMessage(
+      return sendMessage(
         user,
-        buildList(
-          "Select Service:",
-          Object.keys(DIRECTORY[s.city][s.prabhag][ward])
-        )
+        buildList("Select Service:",
+          Object.keys(
+            DIRECTORY[s.city][s.prabhag][w]
+          ))
       );
-      return;
     }
 
-    // -------- SERVICE --------
+    // SERVICE
     if (s.step === "SERVICE") {
-      const service =
+      const services =
         Object.keys(
           DIRECTORY[s.city][s.prabhag][s.ward]
-        )[Number(text) - 1];
+        );
 
-      if (!service) {
-        await sendMessage(user, "Invalid choice. Try again.");
-        return;
-      }
+      const service = services[text - 1];
+      if (!service)
+        return sendMessage(user, "Invalid choice. Try again.");
 
       const people =
         DIRECTORY[s.city][s.prabhag][s.ward][service];
 
       let reply = `Available ${service}:\n\n`;
-
       people.forEach((p, i) => {
         reply += `${i + 1}. ${p.name}\n📞 ${p.phone}\n\n`;
       });
 
       delete sessions[user];
 
-      await sendMessage(user, reply);
-      return;
+      return sendMessage(user, reply);
     }
 
+    return res.sendStatus(200);
   } catch (err) {
     console.error("Webhook Error:", err);
+    return res.sendStatus(500);
   }
 };
