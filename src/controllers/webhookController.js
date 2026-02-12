@@ -3,8 +3,22 @@ import { sendMessage } from "../services/whatsappService.js";
 import { config } from "../config/whatsapp.js";
 
 const sessions = {};
-const processedMessages = new Set(); // ✅ Deduplication
+const processedMessages = new Set();
 
+// ================= Helper: Title Case =================
+const toTitleCase = (text) =>
+  text
+    .toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+// ================= Helper: Build Numbered List =================
+const buildList = (title, arr) =>
+  `${title}\n\n` +
+  arr.map((v, i) => `${i + 1}. ${toTitleCase(v)}`).join("\n");
+
+// ================= Webhook Verification =================
 export const verifyWebhook = (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -16,29 +30,25 @@ export const verifyWebhook = (req, res) => {
   return res.sendStatus(403);
 };
 
-const buildList = (title, arr) =>
-  `${title}\n\n` + arr.map((v, i) => `${i + 1}. ${v}`).join("\n");
-
+// ================= Main Message Controller =================
 export const receiveMessage = async (req, res) => {
   try {
     const value = req.body.entry?.[0]?.changes?.[0]?.value;
 
-    // ✅ Ignore non-message events
     if (!value?.messages) return res.sendStatus(200);
 
     const msg = value.messages[0];
 
-    // ✅ Only text messages
     if (msg.type !== "text") return res.sendStatus(200);
 
-    // ✅ Ignore duplicate WhatsApp retries
+    // Deduplicate WhatsApp retries
     if (processedMessages.has(msg.id)) {
       return res.sendStatus(200);
     }
     processedMessages.add(msg.id);
 
     const user = msg.from;
-    const text = msg.text.body.trim();
+    const text = msg.text.body.trim().toLowerCase();
 
     if (!sessions[user]) {
       sessions[user] = { step: "START" };
@@ -46,60 +56,64 @@ export const receiveMessage = async (req, res) => {
 
     const s = sessions[user];
 
-    // ================= START =================
-    if (text.toLowerCase() === "hi") {
+    // ================= GLOBAL START =================
+    if (text === "hi" || text === "start") {
       s.step = "PRABHAG";
+
       return sendMessage(
         user,
-        buildList("Select Prabhag:", Object.keys(DIRECTORY.Amravati))
+        buildList(
+          "Select Prabhag:",
+          Object.keys(DIRECTORY.Amravati)
+        )
       );
     }
 
     // ================= PRABHAG =================
     if (s.step === "PRABHAG") {
+      const list = Object.keys(DIRECTORY.Amravati);
       const index = parseInt(text);
-      if (isNaN(index)) {
-        return sendMessage(user, "Enter valid number.");
+
+      if (isNaN(index) || !list[index - 1]) {
+        return sendMessage(
+          user,
+          "Invalid option. Please choose again.\n\n" +
+            buildList("Select Prabhag:", list)
+        );
       }
 
-      const prabhag =
-        Object.keys(DIRECTORY.Amravati)[index - 1];
-
-      if (!prabhag) {
-        return sendMessage(user, "Invalid choice.");
-      }
-
-      s.prabhag = prabhag;
+      s.prabhag = list[index - 1];
       s.step = "WARD";
 
       return sendMessage(
         user,
         buildList(
           "Select Ward:",
-          Object.keys(DIRECTORY.Amravati[prabhag])
+          Object.keys(DIRECTORY.Amravati[s.prabhag])
         )
       );
     }
 
     // ================= WARD =================
     if (s.step === "WARD") {
+      const list =
+        Object.keys(DIRECTORY.Amravati[s.prabhag]);
+
       const index = parseInt(text);
-      if (isNaN(index)) {
-        return sendMessage(user, "Enter valid number.");
+
+      if (isNaN(index) || !list[index - 1]) {
+        return sendMessage(
+          user,
+          "Invalid option. Please choose again.\n\n" +
+            buildList("Select Ward:", list)
+        );
       }
 
-      const ward =
-        Object.keys(DIRECTORY.Amravati[s.prabhag])[index - 1];
-
-      if (!ward) {
-        return sendMessage(user, "Invalid choice.");
-      }
-
-      s.ward = ward;
+      s.ward = list[index - 1];
       s.step = "SERVICE";
 
       const member =
-        DIRECTORY.Amravati[s.prabhag][ward].member;
+        DIRECTORY.Amravati[s.prabhag][s.ward].member;
 
       return sendMessage(
         user,
@@ -107,7 +121,7 @@ export const receiveMessage = async (req, res) => {
           buildList(
             "Select Service:",
             Object.keys(
-              DIRECTORY.Amravati[s.prabhag][ward].services
+              DIRECTORY.Amravati[s.prabhag][s.ward].services
             )
           )
       );
@@ -115,39 +129,43 @@ export const receiveMessage = async (req, res) => {
 
     // ================= SERVICE =================
     if (s.step === "SERVICE") {
-      const index = parseInt(text);
-      if (isNaN(index)) {
-        return sendMessage(user, "Enter valid number.");
-      }
-
       const services =
         DIRECTORY.Amravati[s.prabhag][s.ward].services;
 
-      const service =
-        Object.keys(services)[index - 1];
+      const list = Object.keys(services);
+      const index = parseInt(text);
 
-      if (!service) {
-        return sendMessage(user, "Invalid choice.");
+      if (isNaN(index) || !list[index - 1]) {
+        return sendMessage(
+          user,
+          "Invalid option. Please choose again.\n\n" +
+            buildList("Select Service:", list)
+        );
       }
 
+      const service = list[index - 1];
       const people = services[service];
 
-      let reply = `Available ${service}:\n\n`;
+      let reply = `Available ${toTitleCase(service)}:\n\n`;
 
       people.forEach(p => {
         reply += `${p.name}\n📞 ${p.phone}\n\n`;
       });
 
-      // ✅ Reset session safely
+      // Reset session
       sessions[user] = { step: "START" };
 
       return sendMessage(
         user,
-        reply + "\nType hi to start again."
+        reply + "\nType 'hi' or 'start' to begin again."
       );
     }
 
-    return res.sendStatus(200);
+    // ================= FALLBACK =================
+    return sendMessage(
+      user,
+      "Please type 'hi' or 'start' to begin the conversation."
+    );
 
   } catch (err) {
     console.error("Webhook Error:", err);
