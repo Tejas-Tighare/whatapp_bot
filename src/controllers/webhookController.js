@@ -7,7 +7,7 @@ import { config } from "../config/whatsapp.js";
 const sessions = {};
 const processed = new Map(); // messageId -> timestamp
 
-const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 min
+const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const DEDUP_TIMEOUT = 60 * 60 * 1000; // 1 hour
 
 /* ================= CLEANUP TIMER ================= */
@@ -26,7 +26,7 @@ setInterval(() => {
       processed.delete(id);
     }
   }
-}, 10 * 60 * 1000); // every 10 min
+}, 10 * 60 * 1000);
 
 /* ================= HELPERS ================= */
 
@@ -34,7 +34,8 @@ const toTitleCase = txt =>
   txt.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 
 const buildList = (title, arr) =>
-  `${title}\n\n` + arr.map((v, i) => `${i + 1}. ${toTitleCase(v)}`).join("\n");
+  `${title}\n\n` +
+  arr.map((v, i) => `${i + 1}. ${toTitleCase(v)}`).join("\n");
 
 /* ================= VERIFY WEBHOOK ================= */
 
@@ -59,42 +60,71 @@ export const receiveMessage = async (req, res) => {
     const msg = value.messages[0];
     if (msg.type !== "text") return res.sendStatus(200);
 
-    /* ---- Dedup ---- */
+    /* ================= GHOST MESSAGE PROTECTION ================= */
+
+    const msgTimestamp = parseInt(msg.timestamp) * 1000; // seconds -> ms
+    const now = Date.now();
+
+    // Ignore messages older than 5 minutes (WhatsApp retry protection)
+    if (now - msgTimestamp > 5 * 60 * 1000) {
+      console.log("Ignored old WhatsApp retry:", msg.id);
+      return res.sendStatus(200);
+    }
+
+    /* ================= DEDUP ================= */
+
     if (processed.has(msg.id)) return res.sendStatus(200);
-    processed.set(msg.id, Date.now());
+    processed.set(msg.id, now);
 
     const user = msg.from;
     const text = msg.text.body.trim().toLowerCase();
 
-    /* ---- Session ---- */
+    /* ================= SESSION INIT ================= */
+
     if (!sessions[user]) {
-      sessions[user] = { step: "START", lastActive: Date.now() };
+      sessions[user] = { step: "START", lastActive: now };
     }
 
     const s = sessions[user];
-    s.lastActive = Date.now();
-
-    /* ---- Expired Session ---- */
-    if (Date.now() - s.lastActive > SESSION_TIMEOUT) {
-      delete sessions[user];
-      return sendMessage(user, "Session expired. Send hi to start again.");
-    }
+    s.lastActive = now;
 
     /* ================= START ================= */
 
     if (text === "hi" || text === "start") {
+      s.step = "CITY";
+
+      return sendMessage(
+        user,
+        buildList("Select City:", Object.keys(DIRECTORY))
+      );
+    }
+
+    /* ================= CITY ================= */
+
+    if (s.step === "CITY") {
+      const list = Object.keys(DIRECTORY);
+      const i = parseInt(text);
+
+      if (!list[i - 1]) {
+        return sendMessage(user, buildList("Select City:", list));
+      }
+
+      s.city = list[i - 1];
       s.step = "PRABHAG";
 
       return sendMessage(
         user,
-        buildList("Select Prabhag:", Object.keys(DIRECTORY.Amravati))
+        buildList(
+          "Select Prabhag:",
+          Object.keys(DIRECTORY[s.city])
+        )
       );
     }
 
     /* ================= PRABHAG ================= */
 
     if (s.step === "PRABHAG") {
-      const list = Object.keys(DIRECTORY.Amravati);
+      const list = Object.keys(DIRECTORY[s.city]);
       const i = parseInt(text);
 
       if (!list[i - 1]) {
@@ -108,7 +138,7 @@ export const receiveMessage = async (req, res) => {
         user,
         buildList(
           "Select Ward:",
-          Object.keys(DIRECTORY.Amravati[s.prabhag])
+          Object.keys(DIRECTORY[s.city][s.prabhag])
         )
       );
     }
@@ -116,7 +146,10 @@ export const receiveMessage = async (req, res) => {
     /* ================= WARD ================= */
 
     if (s.step === "WARD") {
-      const list = Object.keys(DIRECTORY.Amravati[s.prabhag]);
+      const list = Object.keys(
+        DIRECTORY[s.city][s.prabhag]
+      );
+
       const i = parseInt(text);
 
       if (!list[i - 1]) {
@@ -127,7 +160,7 @@ export const receiveMessage = async (req, res) => {
       s.step = "SERVICE";
 
       const member =
-        DIRECTORY.Amravati[s.prabhag][s.ward].member;
+        DIRECTORY[s.city][s.prabhag][s.ward].member;
 
       return sendMessage(
         user,
@@ -135,7 +168,7 @@ export const receiveMessage = async (req, res) => {
           buildList(
             "Select Service:",
             Object.keys(
-              DIRECTORY.Amravati[s.prabhag][s.ward].services
+              DIRECTORY[s.city][s.prabhag][s.ward].services
             )
           )
       );
@@ -145,7 +178,7 @@ export const receiveMessage = async (req, res) => {
 
     if (s.step === "SERVICE") {
       const services =
-        DIRECTORY.Amravati[s.prabhag][s.ward].services;
+        DIRECTORY[s.city][s.prabhag][s.ward].services;
 
       const list = Object.keys(services);
       const i = parseInt(text);

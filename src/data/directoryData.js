@@ -4,9 +4,18 @@ function buildWard(member) {
   return {
     member,
     services: {
-      road: [{ name: "Road Officer", phone: "9000000001" }],
-      water: [{ name: "Water Officer", phone: "9000000002" }],
-      electricity: [{ name: "Electrician", phone: "9000000003" }]
+      "Water Supply": [
+        { name: "Water Supply Officer", phone: "9000000002" }
+      ],
+      "Waste Management": [
+        { name: "Waste Management Officer", phone: "9000000004" }
+      ],
+      "Street Lighting": [
+        { name: "Street Lighting Officer", phone: "9000000005" }
+      ],
+      "Road Maintenance": [
+        { name: "Road Maintenance Officer", phone: "9000000001" }
+      ]
     }
   };
 }
