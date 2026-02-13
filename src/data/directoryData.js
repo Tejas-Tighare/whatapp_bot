@@ -1,4 +1,17 @@
-// ---------------- MEMBER DATA ----------------
+// ================= WARD BUILDER =================
+
+function buildWard(member) {
+  return {
+    member,
+    services: {
+      road: [{ name: "Road Officer", phone: "9000000001" }],
+      water: [{ name: "Water Officer", phone: "9000000002" }],
+      electricity: [{ name: "Electrician", phone: "9000000003" }]
+    }
+  };
+}
+
+// ================= MEMBER DATA =================
 
 const MEMBERS = {
   "Shegaon – Rahatgaon": {
@@ -155,20 +168,7 @@ const MEMBERS = {
   }
 };
 
-// ---------------- DIRECTORY BUILDER ----------------
-
-function buildWard(member) {
-  return {
-    member,
-    services: {
-      road: [{ name: "Road Officer", phone: "9000000001" }],
-      water: [{ name: "Water Officer", phone: "9000000002" }],
-      electricity: [{ name: "Electrician", phone: "9000000003" }]
-    }
-  };
-}
-
-// ---------------- FINAL DIRECTORY ----------------
+// ================= FINAL DIRECTORY =================
 
 export const DIRECTORY = {
   Amravati: Object.fromEntries(
