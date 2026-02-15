@@ -9,6 +9,7 @@ const processed = new Map(); // messageId -> timestamp
 
 const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minutes
 const DEDUP_TIMEOUT = 60 * 60 * 1000; // 1 hour
+const MESSAGE_MAX_AGE = 60 * 60 * 1000; // 1 hour
 
 /* ================= CLEANUP TIMER ================= */
 
@@ -60,13 +61,12 @@ export const receiveMessage = async (req, res) => {
     const msg = value.messages[0];
     if (msg.type !== "text") return res.sendStatus(200);
 
-    /* ================= GHOST MESSAGE PROTECTION ================= */
+    /* ========= BLOCK OLD WHATSAPP RETRIES ========= */
 
-    const msgTimestamp = parseInt(msg.timestamp) * 1000; // seconds -> ms
+    const msgTimestamp = parseInt(msg.timestamp) * 1000;
     const now = Date.now();
 
-    // Ignore messages older than 5 minutes (WhatsApp retry protection)
-    if (now - msgTimestamp > 5 * 60 * 1000) {
+    if (now - msgTimestamp > MESSAGE_MAX_AGE) {
       console.log("Ignored old WhatsApp retry:", msg.id);
       return res.sendStatus(200);
     }
@@ -79,13 +79,20 @@ export const receiveMessage = async (req, res) => {
     const user = msg.from;
     const text = msg.text.body.trim().toLowerCase();
 
-    /* ================= SESSION INIT ================= */
+    /* ================= SESSION ================= */
 
     if (!sessions[user]) {
       sessions[user] = { step: "START", lastActive: now };
     }
 
     const s = sessions[user];
+
+    // Check expiry BEFORE update
+    if (now - s.lastActive > SESSION_TIMEOUT) {
+      delete sessions[user];
+      return sendMessage(user, "Session expired. Send hi to start again.");
+    }
+
     s.lastActive = now;
 
     /* ================= START ================= */
@@ -114,10 +121,7 @@ export const receiveMessage = async (req, res) => {
 
       return sendMessage(
         user,
-        buildList(
-          "Select Prabhag:",
-          Object.keys(DIRECTORY[s.city])
-        )
+        buildList("Select Prabhag:", Object.keys(DIRECTORY[s.city]))
       );
     }
 
@@ -146,10 +150,7 @@ export const receiveMessage = async (req, res) => {
     /* ================= WARD ================= */
 
     if (s.step === "WARD") {
-      const list = Object.keys(
-        DIRECTORY[s.city][s.prabhag]
-      );
-
+      const list = Object.keys(DIRECTORY[s.city][s.prabhag]);
       const i = parseInt(text);
 
       if (!list[i - 1]) {
@@ -196,10 +197,7 @@ export const receiveMessage = async (req, res) => {
 
       delete sessions[user];
 
-      return sendMessage(
-        user,
-        reply + "Type hi to start again."
-      );
+      return sendMessage(user, reply + "Type hi to start again.");
     }
 
     /* ================= FALLBACK ================= */
