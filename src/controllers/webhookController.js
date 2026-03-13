@@ -194,22 +194,29 @@ return sendWardPage(user,3,LANG[s.lang]);
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
-
 const wardData=DIRECTORY["Amravati"][ward];
 
-/* BUILD MEMBER LIST */
-
 let memberText="👥 Ward Members\n\n";
+
+/* handle both string and object */
+
+if(typeof wardData==="string"){
+
+memberText+=wardData;
+
+}else{
 
 Object.entries(wardData).forEach(([key,value])=>{
 memberText+=`${key} – ${value}\n`;
 });
 
-/* SEND MEMBERS */
+}
+
+/* send members */
 
 await sendMessage(user,memberText);
 
-/* SHOW DEPARTMENTS */
+/* show departments */
 
 return sendList(user,LANG[s.lang].selectDepartment,[{
 title:"Departments",
