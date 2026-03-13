@@ -8,13 +8,31 @@ import {
 import { config } from "../config/whatsapp.js";
 import { DEPARTMENTS, WARDS } from "../data/directoryData.js";
 
-/* Session storage */
+/* ================= STORAGE ================= */
+
 const sessions = {};
+const processed = new Map();
 
-/* Dedup storage */
-const processed = new Set();
+const DEDUP_TIMEOUT = 60 * 60 * 1000;
+const MESSAGE_MAX_AGE = 60 * 1000;
 
-/* Verify webhook */
+/* ================= CLEANUP ================= */
+
+setInterval(() => {
+
+  const now = Date.now();
+
+  for (const [id, time] of processed.entries()) {
+
+    if (now - time > DEDUP_TIMEOUT) {
+      processed.delete(id);
+    }
+
+  }
+
+}, 10 * 60 * 1000);
+
+/* ================= VERIFY WEBHOOK ================= */
 
 export const verifyWebhook = (req, res) => {
 
@@ -29,22 +47,43 @@ export const verifyWebhook = (req, res) => {
   return res.sendStatus(403);
 };
 
-/* Receive messages */
+/* ================= MAIN HANDLER ================= */
 
 export const receiveMessage = async (req, res) => {
 
   try {
 
-    console.log("Webhook hit:", JSON.stringify(req.body, null, 2));
-
     const value = req.body?.entry?.[0]?.changes?.[0]?.value;
 
-    if (!value?.messages) return res.sendStatus(200);
+    /* Ignore delivery/read receipts */
+
+    if (value?.statuses) {
+      return res.sendStatus(200);
+    }
+
+    if (!value?.messages) {
+      return res.sendStatus(200);
+    }
 
     const msg = value.messages[0];
 
-    if (processed.has(msg.id)) return res.sendStatus(200);
-    processed.add(msg.id);
+    /* Dedup */
+
+    if (processed.has(msg.id)) {
+      return res.sendStatus(200);
+    }
+
+    processed.set(msg.id, Date.now());
+
+    /* Ignore old retry */
+
+    const msgTimestamp = parseInt(msg.timestamp) * 1000;
+    const now = Date.now();
+
+    if (now - msgTimestamp > MESSAGE_MAX_AGE) {
+      console.log("Ignored old message retry");
+      return res.sendStatus(200);
+    }
 
     const user = msg.from;
 
@@ -59,8 +98,6 @@ export const receiveMessage = async (req, res) => {
         msg.interactive.button_reply?.id ||
         msg.interactive.list_reply?.id;
     }
-
-    console.log("Payload:", payload);
 
     if (!sessions[user]) {
       sessions[user] = { step: "START" };
@@ -172,5 +209,6 @@ export const receiveMessage = async (req, res) => {
     console.error("Webhook Error:", err);
 
     return res.sendStatus(500);
+
   }
 };

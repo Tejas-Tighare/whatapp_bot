@@ -9,9 +9,10 @@ const headers = {
 };
 
 export const sendMessage = async (to, message) => {
+
   try {
-    await axios.post(
-      url,
+
+    await axios.post(url,
       {
         messaging_product: "whatsapp",
         to,
@@ -19,15 +20,19 @@ export const sendMessage = async (to, message) => {
       },
       { headers }
     );
+
   } catch (err) {
+
     console.error("Send Message Error:", err.response?.data || err.message);
+
   }
 };
 
 export const sendImage = async (to, imageUrl, caption) => {
+
   try {
-    await axios.post(
-      url,
+
+    await axios.post(url,
       {
         messaging_product: "whatsapp",
         to,
@@ -39,15 +44,19 @@ export const sendImage = async (to, imageUrl, caption) => {
       },
       { headers }
     );
+
   } catch (err) {
+
     console.error("Send Image Error:", err.response?.data || err.message);
+
   }
 };
 
 export const sendButtons = async (to, body, buttons) => {
+
   try {
-    await axios.post(
-      url,
+
+    await axios.post(url,
       {
         messaging_product: "whatsapp",
         to,
@@ -60,15 +69,19 @@ export const sendButtons = async (to, body, buttons) => {
       },
       { headers }
     );
+
   } catch (err) {
+
     console.error("Send Button Error:", err.response?.data || err.message);
+
   }
 };
 
 export const sendList = async (to, title, rows) => {
+
   try {
-    await axios.post(
-      url,
+
+    await axios.post(url,
       {
         messaging_product: "whatsapp",
         to,
@@ -89,7 +102,10 @@ export const sendList = async (to, title, rows) => {
       },
       { headers }
     );
+
   } catch (err) {
+
     console.error("Send List Error:", err.response?.data || err.message);
+
   }
 };

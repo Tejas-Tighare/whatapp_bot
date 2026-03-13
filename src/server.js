@@ -8,9 +8,14 @@ const app = express();
 
 app.use(express.json());
 
+/* Serve poster image */
 app.use(express.static("src/public"));
 
 app.use("/", webhookRoutes);
+
+app.get("/", (req, res) => {
+  res.send("WhatsApp Bot Running");
+});
 
 const PORT = process.env.PORT || 10000;
 
