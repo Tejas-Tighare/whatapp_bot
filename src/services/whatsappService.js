@@ -4,108 +4,91 @@ import { config } from "../config/whatsapp.js";
 const url = `https://graph.facebook.com/v18.0/${config.phoneId}/messages`;
 
 const headers = {
-  Authorization: `Bearer ${config.token}`,
-  "Content-Type": "application/json"
+  Authorization:`Bearer ${config.token}`,
+  "Content-Type":"application/json"
 };
 
-export const sendMessage = async (to, message) => {
+export const sendMessage = async(to,message)=>{
 
-  try {
+  try{
 
-    await axios.post(url,
-      {
-        messaging_product: "whatsapp",
-        to,
-        text: { body: message }
-      },
-      { headers }
-    );
+    await axios.post(url,{
+      messaging_product:"whatsapp",
+      to,
+      text:{ body:message }
+    },{headers});
 
-  } catch (err) {
+  }catch(err){
 
-    console.error("Send Message Error:", err.response?.data || err.message);
+    console.error("Send Message Error:",err.response?.data || err.message);
 
   }
 };
 
-export const sendImage = async (to, imageUrl, caption) => {
+export const sendImage = async(to,imageUrl,caption)=>{
 
-  try {
+  try{
 
-    await axios.post(url,
-      {
-        messaging_product: "whatsapp",
-        to,
-        type: "image",
-        image: {
-          link: imageUrl,
-          caption
-        }
-      },
-      { headers }
-    );
+    await axios.post(url,{
+      messaging_product:"whatsapp",
+      to,
+      type:"image",
+      image:{
+        link:imageUrl,
+        caption
+      }
+    },{headers});
 
-  } catch (err) {
+  }catch(err){
 
-    console.error("Send Image Error:", err.response?.data || err.message);
+    console.error("Send Image Error:",err.response?.data || err.message);
 
   }
 };
 
-export const sendButtons = async (to, body, buttons) => {
+export const sendButtons = async(to,body,buttons)=>{
 
-  try {
+  try{
 
-    await axios.post(url,
-      {
-        messaging_product: "whatsapp",
-        to,
-        type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text: body },
-          action: { buttons }
-        }
-      },
-      { headers }
-    );
+    await axios.post(url,{
+      messaging_product:"whatsapp",
+      to,
+      type:"interactive",
+      interactive:{
+        type:"button",
+        body:{text:body},
+        action:{buttons}
+      }
+    },{headers});
 
-  } catch (err) {
+  }catch(err){
 
-    console.error("Send Button Error:", err.response?.data || err.message);
+    console.error("Send Button Error:",err.response?.data || err.message);
 
   }
 };
 
-export const sendList = async (to, title, rows) => {
+export const sendList = async(to,body,sections)=>{
 
-  try {
+  try{
 
-    await axios.post(url,
-      {
-        messaging_product: "whatsapp",
-        to,
-        type: "interactive",
-        interactive: {
-          type: "list",
-          body: { text: title },
-          action: {
-            button: "Select",
-            sections: [
-              {
-                title: "Options",
-                rows
-              }
-            ]
-          }
+    await axios.post(url,{
+      messaging_product:"whatsapp",
+      to,
+      type:"interactive",
+      interactive:{
+        type:"list",
+        body:{text:body},
+        action:{
+          button:"Select",
+          sections
         }
-      },
-      { headers }
-    );
+      }
+    },{headers});
 
-  } catch (err) {
+  }catch(err){
 
-    console.error("Send List Error:", err.response?.data || err.message);
+    console.error("Send List Error:",err.response?.data || err.message);
 
   }
 };

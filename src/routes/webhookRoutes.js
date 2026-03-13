@@ -1,8 +1,5 @@
 import express from "express";
-import {
-  verifyWebhook,
-  receiveMessage
-} from "../controllers/webhookController.js";
+import { verifyWebhook, receiveMessage } from "../controllers/webhookController.js";
 
 const router = express.Router();
 

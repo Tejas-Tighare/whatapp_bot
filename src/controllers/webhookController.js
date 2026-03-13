@@ -1,214 +1,187 @@
-import {
-  sendMessage,
-  sendImage,
-  sendButtons,
-  sendList
-} from "../services/whatsappService.js";
-
+import { sendMessage, sendImage, sendButtons, sendList } from "../services/whatsappService.js";
 import { config } from "../config/whatsapp.js";
-import { DEPARTMENTS, WARDS } from "../data/directoryData.js";
-
-/* ================= STORAGE ================= */
+import { DIRECTORY } from "../data/directoryData.js";
 
 const sessions = {};
 const processed = new Map();
 
-const DEDUP_TIMEOUT = 60 * 60 * 1000;
-const MESSAGE_MAX_AGE = 60 * 1000;
+const MESSAGE_MAX_AGE = 60000;
+const DEDUP_TIMEOUT = 3600000;
 
-/* ================= CLEANUP ================= */
+setInterval(()=>{
 
-setInterval(() => {
+const now = Date.now();
 
-  const now = Date.now();
+for(const [id,time] of processed.entries()){
 
-  for (const [id, time] of processed.entries()) {
+if(now - time > DEDUP_TIMEOUT){
+processed.delete(id);
+}
 
-    if (now - time > DEDUP_TIMEOUT) {
-      processed.delete(id);
-    }
+}
 
-  }
+},600000);
 
-}, 10 * 60 * 1000);
+export const verifyWebhook = (req,res)=>{
 
-/* ================= VERIFY WEBHOOK ================= */
+const mode = req.query["hub.mode"];
+const token = req.query["hub.verify_token"];
+const challenge = req.query["hub.challenge"];
 
-export const verifyWebhook = (req, res) => {
+if(mode==="subscribe" && token===config.verifyToken){
+return res.status(200).send(challenge);
+}
 
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === config.verifyToken) {
-    return res.status(200).send(challenge);
-  }
-
-  return res.sendStatus(403);
+return res.sendStatus(403);
 };
 
-/* ================= MAIN HANDLER ================= */
+export const receiveMessage = async(req,res)=>{
 
-export const receiveMessage = async (req, res) => {
+try{
 
-  try {
+const value = req.body?.entry?.[0]?.changes?.[0]?.value;
 
-    const value = req.body?.entry?.[0]?.changes?.[0]?.value;
+if(value?.statuses) return res.sendStatus(200);
 
-    /* Ignore delivery/read receipts */
+if(!value?.messages) return res.sendStatus(200);
 
-    if (value?.statuses) {
-      return res.sendStatus(200);
-    }
+const msg = value.messages[0];
 
-    if (!value?.messages) {
-      return res.sendStatus(200);
-    }
+if(processed.has(msg.id)) return res.sendStatus(200);
 
-    const msg = value.messages[0];
+processed.set(msg.id,Date.now());
 
-    /* Dedup */
+const msgTimestamp = parseInt(msg.timestamp)*1000;
 
-    if (processed.has(msg.id)) {
-      return res.sendStatus(200);
-    }
+if(Date.now()-msgTimestamp>MESSAGE_MAX_AGE){
+return res.sendStatus(200);
+}
 
-    processed.set(msg.id, Date.now());
+const user = msg.from;
 
-    /* Ignore old retry */
+let payload="";
 
-    const msgTimestamp = parseInt(msg.timestamp) * 1000;
-    const now = Date.now();
+if(msg.type==="text"){
+payload = msg.text.body.toLowerCase();
+}
 
-    if (now - msgTimestamp > MESSAGE_MAX_AGE) {
-      console.log("Ignored old message retry");
-      return res.sendStatus(200);
-    }
+if(msg.type==="interactive"){
+payload = msg.interactive.button_reply?.id || msg.interactive.list_reply?.id;
+}
 
-    const user = msg.from;
+if(!sessions[user]){
+sessions[user]={step:"START"};
+}
 
-    let payload = "";
+const s=sessions[user];
 
-    if (msg.type === "text") {
-      payload = msg.text.body.toLowerCase();
-    }
+if(payload==="hi" || payload==="start"){
 
-    if (msg.type === "interactive") {
-      payload =
-        msg.interactive.button_reply?.id ||
-        msg.interactive.list_reply?.id;
-    }
+s.step="LANG";
 
-    if (!sessions[user]) {
-      sessions[user] = { step: "START" };
-    }
+await sendImage(user,
+"https://whatapp-bot-s5br.onrender.com/poster.jpg",
+"Welcome to Citizen Help Bot"
+);
 
-    const s = sessions[user];
+return sendButtons(user,"Select Language",[
+{type:"reply",reply:{id:"lang_en",title:"English"}},
+{type:"reply",reply:{id:"lang_hi",title:"हिंदी"}},
+{type:"reply",reply:{id:"lang_mr",title:"मराठी"}}
+]);
 
-    /* START */
+}
 
-    if (payload === "hi" || payload === "start") {
+if(payload.startsWith("lang")){
 
-      s.step = "LANG";
+s.step="STATE";
 
-      await sendImage(
-        user,
-        "https://whatapp-bot-s5br.onrender.com/poster.jpg",
-        "Welcome to Citizen Help Bot"
-      );
+return sendButtons(user,"Select State",[
+{type:"reply",reply:{id:"state_mh",title:"Maharashtra"}}
+]);
 
-      return sendButtons(user, "Select Language", [
-        { type: "reply", reply: { id: "lang_en", title: "English" } },
-        { type: "reply", reply: { id: "lang_hi", title: "हिंदी" } },
-        { type: "reply", reply: { id: "lang_mr", title: "मराठी" } }
-      ]);
-    }
+}
 
-    /* LANGUAGE */
+if(payload==="state_mh"){
 
-    if (payload.startsWith("lang")) {
+s.step="CITY";
 
-      s.step = "STATE";
+return sendList(user,"Select City",[{
+title:"Cities",
+rows:[
+{id:"city_amravati",title:"Amravati"},
+{id:"city_nagpur",title:"Nagpur"},
+{id:"city_akola",title:"Akola"}
+]
+}]);
 
-      return sendButtons(user, "Select State", [
-        { type: "reply", reply: { id: "state_mh", title: "Maharashtra" } }
-      ]);
-    }
+}
 
-    /* STATE */
+if(payload.startsWith("city")){
 
-    if (payload === "state_mh") {
+const city = payload.split("_")[1];
 
-      s.step = "CITY";
+if(city!=="amravati"){
 
-      return sendList(user, "Select City", [
-        { id: "city_amravati", title: "Amravati" },
-        { id: "city_nagpur", title: "Nagpur" },
-        { id: "city_akola", title: "Akola" }
-      ]);
-    }
+delete sessions[user];
 
-    /* CITY */
+return sendMessage(user,"We are currently working on this city.\nPlease select *Amravati* for now.");
 
-    if (payload.startsWith("city")) {
+}
 
-      const city = payload.split("_")[1];
+s.step="WARD";
 
-      if (city !== "amravati") {
-        delete sessions[user];
-        return sendMessage(user, "Directory available only for Amravati.");
-      }
+const wards = Object.keys(DIRECTORY["Amravati"]);
 
-      s.step = "WARD";
+const rows = wards.map(w=>({id:`ward_${w}`,title:w}));
 
-      return sendList(
-        user,
-        "Select Ward",
-        WARDS.map(w => ({
-          id: `ward_${w}`,
-          title: `Ward ${w}`
-        }))
-      );
-    }
+return sendList(user,"Select Ward",[
+{title:"Ward 1-10",rows:rows.slice(0,10)},
+{title:"Ward 11-20",rows:rows.slice(10,20)},
+{title:"Ward 21-22",rows:rows.slice(20)}
+]);
 
-    /* WARD */
+}
 
-    if (payload.startsWith("ward")) {
+if(payload.startsWith("ward")){
 
-      s.step = "DEPT";
+const ward = payload.replace("ward_","");
 
-      return sendList(user, "Select Department", [
-        { id: "dept_municipal", title: "Municipal Corporation" },
-        { id: "dept_mseb", title: "MSEB Electricity" },
-        { id: "dept_health", title: "Health Department" },
-        { id: "dept_water", title: "Water Supply" },
-        { id: "dept_waste", title: "Waste Management" }
-      ]);
-    }
+const member = DIRECTORY["Amravati"][ward];
 
-    /* DEPARTMENT */
+s.step="DEPT";
 
-    if (payload.startsWith("dept")) {
+await sendMessage(user,`Ward Member: ${member}`);
 
-      const key = payload.split("_")[1];
+return sendList(user,"Select Department",[{
+title:"Departments",
+rows:[
+{id:"dept_municipal",title:"Municipal Corporation"},
+{id:"dept_mseb",title:"MSEB Electricity"},
+{id:"dept_health",title:"Health Department"},
+{id:"dept_water",title:"Water Supply"},
+{id:"dept_waste",title:"Waste Management"}
+]
+}]);
 
-      const officer = DEPARTMENTS[key];
+}
 
-      delete sessions[user];
+if(payload.startsWith("dept")){
 
-      return sendMessage(
-        user,
-        `Officer: ${officer.name}\n📞 ${officer.phone}\n\nType hi to restart`
-      );
-    }
+delete sessions[user];
 
-    return sendMessage(user, "Type hi to start.");
+return sendMessage(user,"Officer contact will appear here.\nType *hi* to restart.");
 
-  } catch (err) {
+}
 
-    console.error("Webhook Error:", err);
+return sendMessage(user,"Type *hi* to start.");
 
-    return res.sendStatus(500);
+}catch(err){
 
-  }
+console.error("Webhook Error:",err);
+
+return res.sendStatus(500);
+
+}
+
 };
