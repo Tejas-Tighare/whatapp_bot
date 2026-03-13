@@ -40,12 +40,12 @@ if(!value?.messages) return res.sendStatus(200);
 
 const msg=value.messages[0];
 
-/* dedup */
+/* prevent duplicate processing */
 
 if(processed.has(msg.id)) return res.sendStatus(200);
 processed.set(msg.id,Date.now());
 
-/* ignore old retry */
+/* ignore old retries */
 
 const msgTimestamp=parseInt(msg.timestamp)*1000;
 
@@ -67,7 +67,8 @@ msg.interactive.button_reply?.id ||
 msg.interactive.list_reply?.id;
 }
 
-/* session */
+
+/* SESSION */
 
 if(!sessions[user]){
 sessions[user]={step:"START",lang:"english"};
@@ -83,11 +84,15 @@ if(payload==="hi" || payload==="start"){
 
 s.step="LANG";
 
+/* SEND POSTER FIRST */
+
 await sendImage(
 user,
 "https://whatapp-bot-s5br.onrender.com/poster.jpg",
 lang.welcome
 );
+
+/* THEN LANGUAGE OPTIONS */
 
 return sendButtons(user,lang.selectLanguage,[
 {type:"reply",reply:{id:"lang_english",title:"English"}},
@@ -185,9 +190,10 @@ return sendWardPage(user,3,LANG[s.lang]);
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
+
 const member=DIRECTORY["Amravati"][ward];
 
-await sendMessage(user,`Ward Member: ${member}`);
+await sendMessage(user,`👤 Ward Member: ${member}`);
 
 return sendList(user,LANG[s.lang].selectDepartment,[{
 title:"Departments",
@@ -212,8 +218,10 @@ delete sessions[user];
 
 return sendMessage(
 user,
-`Officer: Rahul Patil
-Phone: 9876543210
+`👤 Officer: Rahul Patil
+📞 Call: +91 9876543210
+
+Tap the number to open the dial pad.
 
 Type *hi* to restart`
 );
@@ -224,7 +232,7 @@ return sendMessage(user,"Type hi to start");
 
 }catch(err){
 
-console.error(err);
+console.error("Webhook Error:",err);
 return res.sendStatus(500);
 
 }
@@ -273,17 +281,21 @@ description:"More wards"
 };
 }
 
-/* short ward name */
+/* AUTO SHORT TITLE */
 
-let shortName = w.split("–")[0].trim();
+let shortTitle=w;
 
-if(shortName.length>24){
-shortName = shortName.substring(0,22);
+if(shortTitle.includes("–")){
+shortTitle=shortTitle.split("–")[0].trim();
+}
+
+if(shortTitle.length>24){
+shortTitle=shortTitle.substring(0,22);
 }
 
 return{
 id:`ward_${w}`,
-title:shortName,
+title:shortTitle,
 description:w
 };
 
