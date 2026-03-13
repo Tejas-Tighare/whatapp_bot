@@ -7,19 +7,6 @@ const sessions = {};
 const processed = new Map();
 
 const MESSAGE_MAX_AGE = 60000;
-const DEDUP_TIMEOUT = 3600000;
-
-setInterval(()=>{
-
-const now = Date.now();
-
-for(const [id,time] of processed.entries()){
-if(now-time>DEDUP_TIMEOUT){
-processed.delete(id);
-}
-}
-
-},600000);
 
 export const verifyWebhook=(req,res)=>{
 
@@ -76,10 +63,9 @@ const s=sessions[user];
 const lang=LANG[s.lang];
 
 
-
 /* START */
 
-if(payload==="hi" || payload==="start"){
+if(payload==="hi"||payload==="start"){
 
 s.step="LANG";
 
@@ -96,7 +82,6 @@ return sendButtons(user,lang.selectLanguage,[
 ]);
 
 }
-
 
 
 /* LANGUAGE */
@@ -118,7 +103,6 @@ return sendButtons(user,l.selectState,[
 }
 
 
-
 /* STATE */
 
 if(payload==="state_mh"){
@@ -137,7 +121,6 @@ rows:[
 }]);
 
 }
-
 
 
 /* CITY */
@@ -162,42 +145,22 @@ rows:[
 
 }
 
-s.step="WARD";
+s.step="WARD_PAGE1";
 
-const wards=Object.keys(DIRECTORY["Amravati"]);
-
-const first10=wards.slice(0,10);
-const second10=wards.slice(10,20);
-const last2=wards.slice(20);
-
-await sendList(user,l.selectWard+" (1-10)",[{
-title:"Ward List",
-rows:first10.map(w=>({
-id:`ward_${w}`,
-title:w
-}))
-}]);
-
-await sendList(user,l.selectWard+" (11-20)",[{
-title:"Ward List",
-rows:second10.map(w=>({
-id:`ward_${w}`,
-title:w
-}))
-}]);
-
-await sendList(user,l.selectWard+" (21-22)",[{
-title:"Ward List",
-rows:last2.map(w=>({
-id:`ward_${w}`,
-title:w
-}))
-}]);
-
-return;
+return sendWardPage(user,1,l);
 
 }
 
+
+/* PAGINATION */
+
+if(payload==="ward_next_1"){
+return sendWardPage(user,2,LANG[s.lang]);
+}
+
+if(payload==="ward_next_2"){
+return sendWardPage(user,3,LANG[s.lang]);
+}
 
 
 /* WARD */
@@ -205,15 +168,14 @@ return;
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
-const member=DIRECTORY["Amravati"][ward];
 
-const l=LANG[s.lang];
+const member=DIRECTORY["Amravati"][ward];
 
 s.step="DEPT";
 
 await sendMessage(user,`Ward Member: ${member}`);
 
-return sendList(user,l.selectDepartment,[{
+return sendList(user,LANG[s.lang].selectDepartment,[{
 title:"Departments",
 rows:[
 {id:"dept_municipal",title:"Municipal Corporation"},
@@ -227,25 +189,73 @@ rows:[
 }
 
 
-
 /* DEPARTMENT */
 
 if(payload.startsWith("dept")){
 
 delete sessions[user];
 
-return sendMessage(user,"Officer contact will appear here.\n\nType *hi* to restart.");
+return sendMessage(user,
+`Officer: Rahul Patil
+Phone: 9876543210
+
+Type *hi* to restart`
+);
 
 }
 
-return sendMessage(user,"Type *hi* to start.");
+return sendMessage(user,"Type hi to start");
 
 }catch(err){
 
-console.error("Webhook Error:",err);
-
+console.error(err);
 return res.sendStatus(500);
 
 }
 
 };
+
+
+/* PAGINATION FUNCTION */
+
+async function sendWardPage(user,page,lang){
+
+const wards=Object.keys(DIRECTORY["Amravati"]);
+
+let rows=[];
+
+if(page===1){
+rows=wards.slice(0,10);
+}
+
+if(page===2){
+rows=wards.slice(10,20);
+}
+
+if(page===3){
+rows=wards.slice(20);
+}
+
+await sendList(user,lang.selectWard,[{
+title:"Ward List",
+rows:rows.map(w=>({
+id:`ward_${w}`,
+title:w
+}))
+}]);
+
+if(page===1){
+return sendButtons(user,"More wards",[{
+type:"reply",
+reply:{id:"ward_next_1",title:"Next"}
+}]);
+}
+
+if(page===2){
+return sendButtons(user,"More wards",[{
+type:"reply",
+reply:{id:"ward_next_2",title:"Next"}
+}]);
+}
+
+}
