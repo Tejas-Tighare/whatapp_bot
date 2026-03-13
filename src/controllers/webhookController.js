@@ -1,10 +1,4 @@
-import {
-sendMessage,
-sendImage,
-sendButtons,
-sendList
-} from "../services/whatsappService.js";
-
+import { sendMessage, sendImage, sendButtons, sendList } from "../services/whatsappService.js";
 import { config } from "../config/whatsapp.js";
 import { DIRECTORY } from "../data/directoryData.js";
 import { LANG } from "../data/languageData.js";
@@ -79,8 +73,7 @@ sessions[user]={step:"START",lang:"english"};
 }
 
 const s=sessions[user];
-
-const lang = LANG[s.lang];
+const lang=LANG[s.lang];
 
 
 
@@ -93,7 +86,7 @@ s.step="LANG";
 await sendImage(
 user,
 "https://whatapp-bot-s5br.onrender.com/poster.jpg",
-"Welcome to Citizen Help Bot"
+lang.welcome
 );
 
 return sendButtons(user,lang.selectLanguage,[
@@ -114,9 +107,9 @@ const selectedLang=payload.split("_")[1];
 
 s.lang=selectedLang;
 
-s.step="STATE";
-
 const l=LANG[selectedLang];
+
+s.step="STATE";
 
 return sendButtons(user,l.selectState,[
 {type:"reply",reply:{id:"state_mh",title:"Maharashtra"}}
@@ -130,9 +123,9 @@ return sendButtons(user,l.selectState,[
 
 if(payload==="state_mh"){
 
-s.step="CITY";
-
 const l=LANG[s.lang];
+
+s.step="CITY";
 
 return sendList(user,l.selectCity,[{
 title:"Cities",
@@ -152,7 +145,6 @@ rows:[
 if(payload.startsWith("city_")){
 
 const city=payload.split("_")[1];
-
 const l=LANG[s.lang];
 
 if(city!=="amravati"){
@@ -194,13 +186,15 @@ title:w
 }))
 }]);
 
-return sendList(user,l.selectWard+" (21-22)",[{
+await sendList(user,l.selectWard+" (21-22)",[{
 title:"Ward List",
 rows:last2.map(w=>({
 id:`ward_${w}`,
 title:w
 }))
 }]);
+
+return;
 
 }
 
@@ -211,7 +205,6 @@ title:w
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
-
 const member=DIRECTORY["Amravati"][ward];
 
 const l=LANG[s.lang];
@@ -241,14 +234,11 @@ if(payload.startsWith("dept")){
 
 delete sessions[user];
 
-return sendMessage(
-user,
-"Officer contact will appear here.\n\nType *hi* to restart."
-);
+return sendMessage(user,"Officer contact will appear here.\n\nType *hi* to restart.");
 
 }
 
-return sendMessage(user,"Type hi to start.");
+return sendMessage(user,"Type *hi* to start.");
 
 }catch(err){
 

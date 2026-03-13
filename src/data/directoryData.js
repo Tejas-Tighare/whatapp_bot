@@ -1,6 +1,6 @@
 export const DIRECTORY = {
 
-  Amravati: {
+Amravati:{
 
 "Shegaon – Rahatgaon":"कल्याणी डांके",
 "Sant Gadgebaba – P.D.M.C.":"विनोद तानवे",
@@ -25,6 +25,6 @@ export const DIRECTORY = {
 "Juni Wasti – Badnera":"मीरा कांबळे",
 "Navi Wasti – Badnera":"रजनी डोंगरे"
 
-  }
+}
 
 };
