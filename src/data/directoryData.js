@@ -2,25 +2,75 @@ export const DIRECTORY = {
 
   Amravati: {
 
-    "Shegaon – Rahatgaon": "कल्याणी डांके",
+    "Shegaon – Rahatgaon": {
+      A: "कल्याणी डांके",
+      B: "चंद्रकांत खेड़कर",
+      C: "वंदना मडये",
+      D: "प्रशांत धर्मळे"
+    },
 
-    "Sant Gadgebaba – P.D.M.C.": "विनोद तानवे",
+    "Sant Gadgebaba – P.D.M.C.": {
+      A: "विनोद तानवे",
+      B: "मीना सराई",
+      C: "सुरेखा डुंगरे",
+      D: "प्रमोद महल्ले"
+    },
 
-    "Navsari – Hardik Colony": "अनीता काळे",
+    "Navsari – Hardik Colony": {
+      A: "अनीता काळे",
+      B: "प्रशांत महल्ले",
+      C: "लुबना तबीवर से. मरकूम",
+      D: "श्रेफिको देशमुख"
+    },
 
-    "Jamil Colony – Lalkhadi": "अहमद शा. इकबाल शा",
+    "Jamil Colony – Lalkhadi": {
+      A: "अहमद शा. इकबाल शा",
+      B: "फरद ताज स. मीर अली",
+      C: "कुबर बानो कासम अली",
+      D: "सलाउद्दीन इकरामुद्दीन"
+    },
 
-    "Mahendra Colony – New Cotton Market": "सुनीता लोणारे",
+    "Mahendra Colony – New Cotton Market": {
+      A: "सुनीता लोणारे",
+      B: "माधुरी ठाकरे",
+      C: "राजश्री जठळे",
+      D: "धीरज हिवसे"
+    },
 
-    "Vilas Nagar – Morbag – Gawalipura": "संजय नरवणे",
+    "Vilas Nagar – Morbag – Gawalipura": {
+      A: "संजय नरवणे",
+      B: "पूजा अग्रवाल",
+      C: "दीपक साहू",
+      D: "रेखा तावडे"
+    },
 
-    "Jawahar Stadium – Bhim Nagar": "सोनाली नाईक",
+    "Jawahar Stadium – Bhim Nagar": {
+      A: "सोनाली नाईक",
+      B: "मनीष बजाज",
+      C: "स्नेहा तुल्ला",
+      D: "श्रीचंद तेजवानी"
+    },
 
-    "Jog Stadium – Chaparashipura": "माला गवई",
+    "Jog Stadium – Chaparashipura": {
+      A: "माला गवई",
+      B: "अर्चना आगाम",
+      C: "असमा खान फिरोज खान",
+      D: "बाबू रोहिदास"
+    },
 
-    "S.R.P.F. – Wadali – Amravati University": "विशाल वानखेडे",
+    "S.R.P.F. – Wadali – Amravati University": {
+      A: "विशाल वानखेडे",
+      B: "पुष्पा गुहे",
+      C: "पंचफुला पंधाणा",
+      D: "Member Pending"
+    },
 
-    "Benoda – Bhimtekadi – Dastur Nagar": "मधुरा काहळे",
+    "Benoda – Bhimtekadi – Dastur Nagar": {
+      A: "मधुरा काहळे",
+      B: "अर्चना पाटील",
+      C: "मंगेश मनोरे",
+      D: "अविनाश माईंडकर"
+    },
 
     "Frezarpura – Rukhmini Nagar": "विद्या माटे",
 
