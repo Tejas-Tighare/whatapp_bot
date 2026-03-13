@@ -92,7 +92,11 @@ user,
 lang.welcome
 );
 
-/* THEN LANGUAGE OPTIONS */
+/* WAIT 1.5 SECONDS */
+
+await new Promise(resolve=>setTimeout(resolve,1500));
+
+/* THEN SEND LANGUAGE OPTIONS */
 
 return sendButtons(user,lang.selectLanguage,[
 {type:"reply",reply:{id:"lang_english",title:"English"}},
@@ -190,7 +194,6 @@ return sendWardPage(user,3,LANG[s.lang]);
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
-
 const member=DIRECTORY["Amravati"][ward];
 
 await sendMessage(user,`👤 Ward Member: ${member}`);
@@ -281,7 +284,7 @@ description:"More wards"
 };
 }
 
-/* AUTO SHORT TITLE */
+/* shorten ward name automatically */
 
 let shortTitle=w;
 
