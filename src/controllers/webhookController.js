@@ -8,7 +8,7 @@ const processed = new Map();
 
 const MESSAGE_MAX_AGE = 60000;
 
-export const verifyWebhook=(req,res)=>{
+export const verifyWebhook = (req,res)=>{
 
 const mode=req.query["hub.mode"];
 const token=req.query["hub.verify_token"];
@@ -21,11 +21,11 @@ return res.status(200).send(challenge);
 return res.sendStatus(403);
 };
 
-export const receiveMessage=async(req,res)=>{
+export const receiveMessage = async(req,res)=>{
 
 try{
 
-const value=req.body?.entry?.[0]?.changes?.[0]?.value;
+const value = req.body?.entry?.[0]?.changes?.[0]?.value;
 
 if(value?.statuses) return res.sendStatus(200);
 if(!value?.messages) return res.sendStatus(200);
@@ -65,7 +65,7 @@ const lang=LANG[s.lang];
 
 /* START */
 
-if(payload==="hi"||payload==="start"){
+if(payload==="hi" || payload==="start"){
 
 s.step="LANG";
 
@@ -89,7 +89,6 @@ return sendButtons(user,lang.selectLanguage,[
 if(payload.startsWith("lang_")){
 
 const selectedLang=payload.split("_")[1];
-
 s.lang=selectedLang;
 
 const l=LANG[selectedLang];
@@ -145,30 +144,29 @@ rows:[
 
 }
 
-s.step="WARD_PAGE1";
+s.step="WARD_PAGE_1";
 
 return sendWardPage(user,1,l);
 
 }
 
 
-/* PAGINATION */
+/* NEXT BUTTON */
 
-if(payload==="ward_next_1"){
+if(payload==="next_ward_2"){
 return sendWardPage(user,2,LANG[s.lang]);
 }
 
-if(payload==="ward_next_2"){
+if(payload==="next_ward_3"){
 return sendWardPage(user,3,LANG[s.lang]);
 }
 
 
-/* WARD */
+/* WARD SELECT */
 
 if(payload.startsWith("ward_")){
 
 const ward=payload.replace("ward_","");
-
 const member=DIRECTORY["Amravati"][ward];
 
 s.step="DEPT";
@@ -216,46 +214,49 @@ return res.sendStatus(500);
 };
 
 
-/* PAGINATION FUNCTION */
+
+/* WARD PAGE FUNCTION */
 
 async function sendWardPage(user,page,lang){
 
 const wards=Object.keys(DIRECTORY["Amravati"]);
 
-let rows=[];
+let list=[];
 
 if(page===1){
-rows=wards.slice(0,10);
+list=wards.slice(0,10);
 }
 
 if(page===2){
-rows=wards.slice(10,20);
+list=wards.slice(10,20);
 }
 
 if(page===3){
-rows=wards.slice(20);
+list=wards.slice(20);
 }
 
 await sendList(user,lang.selectWard,[{
 title:"Ward List",
-rows:rows.map(w=>({
+rows:list.map(w=>({
 id:`ward_${w}`,
 title:w
 }))
 }]);
 
 if(page===1){
-return sendButtons(user,"More wards",[{
-type:"reply",
-reply:{id:"ward_next_1",title:"Next"}
-}]);
+
+return sendButtons(user,"More wards",[
+{type:"reply",reply:{id:"next_ward_2",title:"Next"}}
+]);
+
 }
 
 if(page===2){
-return sendButtons(user,"More wards",[{
-type:"reply",
-reply:{id:"ward_next_2",title:"Next"}
-}]);
+
+return sendButtons(user,"More wards",[
+{type:"reply",reply:{id:"next_ward_3",title:"Next"}}
+]);
+
 }
 
 }
