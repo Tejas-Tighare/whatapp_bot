@@ -1,14 +1,16 @@
+export const WARDS = ["A", "B", "C", "D"];
+
 export const DEPARTMENTS = {
   municipal: {
     name: "Municipal Officer",
     phone: "9000000001"
   },
   mseb: {
-    name: "Electricity Officer",
+    name: "MSEB Electricity Officer",
     phone: "9000000002"
   },
   health: {
-    name: "Health Officer",
+    name: "Health Department Officer",
     phone: "9000000003"
   },
   water: {
@@ -20,5 +22,3 @@ export const DEPARTMENTS = {
     phone: "9000000005"
   }
 };
-
-export const WARDS = ["A","B","C","D"];

@@ -9,71 +9,87 @@ const headers = {
 };
 
 export const sendMessage = async (to, message) => {
-  await axios.post(
-    url,
-    {
-      messaging_product: "whatsapp",
-      to,
-      text: { body: message }
-    },
-    { headers }
-  );
+  try {
+    await axios.post(
+      url,
+      {
+        messaging_product: "whatsapp",
+        to,
+        text: { body: message }
+      },
+      { headers }
+    );
+  } catch (err) {
+    console.error("Send Message Error:", err.response?.data || err.message);
+  }
 };
 
-export const sendImage = async (to, image, caption) => {
-  await axios.post(
-    url,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "image",
-      image: {
-        link: image,
-        caption
-      }
-    },
-    { headers }
-  );
+export const sendImage = async (to, imageUrl, caption) => {
+  try {
+    await axios.post(
+      url,
+      {
+        messaging_product: "whatsapp",
+        to,
+        type: "image",
+        image: {
+          link: imageUrl,
+          caption
+        }
+      },
+      { headers }
+    );
+  } catch (err) {
+    console.error("Send Image Error:", err.response?.data || err.message);
+  }
 };
 
 export const sendButtons = async (to, body, buttons) => {
-  await axios.post(
-    url,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "interactive",
-      interactive: {
-        type: "button",
-        body: { text: body },
-        action: { buttons }
-      }
-    },
-    { headers }
-  );
+  try {
+    await axios.post(
+      url,
+      {
+        messaging_product: "whatsapp",
+        to,
+        type: "interactive",
+        interactive: {
+          type: "button",
+          body: { text: body },
+          action: { buttons }
+        }
+      },
+      { headers }
+    );
+  } catch (err) {
+    console.error("Send Button Error:", err.response?.data || err.message);
+  }
 };
 
 export const sendList = async (to, title, rows) => {
-  await axios.post(
-    url,
-    {
-      messaging_product: "whatsapp",
-      to,
-      type: "interactive",
-      interactive: {
-        type: "list",
-        body: { text: title },
-        action: {
-          button: "Select",
-          sections: [
-            {
-              title: "Options",
-              rows
-            }
-          ]
+  try {
+    await axios.post(
+      url,
+      {
+        messaging_product: "whatsapp",
+        to,
+        type: "interactive",
+        interactive: {
+          type: "list",
+          body: { text: title },
+          action: {
+            button: "Select",
+            sections: [
+              {
+                title: "Options",
+                rows
+              }
+            ]
+          }
         }
-      }
-    },
-    { headers }
-  );
+      },
+      { headers }
+    );
+  } catch (err) {
+    console.error("Send List Error:", err.response?.data || err.message);
+  }
 };
