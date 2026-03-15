@@ -62,7 +62,7 @@ export const DIRECTORY = {
       A: "विशाल वानखेडे",
       B: "पुष्पा गुहे",
       C: "पंचफुला पंधाणा",
-      D: "Member Pending"
+      D: "Om Patil"
     },
 
     "Benoda – Bhimtekadi – Dastur Nagar": {
@@ -72,29 +72,89 @@ export const DIRECTORY = {
       D: "अविनाश माईंडकर"
     },
 
-    "Frezarpura – Rukhmini Nagar": "विद्या माटे",
+    "Frezarpura – Rukhmini Nagar": {
+      A: "विद्या माटे",
+      B: "Raj Sharma",
+      C: "Amit Patil",
+      D: "Neha Deshmukh"
+    },
 
-    "Swami Vivekanand Colony – Belpura": "राधा कुरले",
+    "Swami Vivekanand Colony – Belpura": {
+      A: "राधा कुरले",
+      B: "Rahul Patil",
+      C: "Pooja Sharma",
+      D: "Sneha Kulkarni"
+    },
 
-    "Ambapeth – Gaurakshan – Namuna": "मिलिंद बाम्बळ",
+    "Ambapeth – Gaurakshan – Namuna": {
+      A: "मिलिंद बाम्बळ",
+      B: "Om Jadhav",
+      C: "Raj Pawar",
+      D: "Neha Patil"
+    },
 
-    "Jawahar Gate – Budhwara": "विलास इंगोले",
+    "Jawahar Gate – Budhwara": {
+      A: "विलास इंगोले",
+      B: "Rahul Sharma",
+      C: "Amit Deshmukh",
+      D: "Pooja Patil"
+    },
 
-    "Chhaya Nagar – Pathanpura": "शाह अफसर शाह",
+    "Chhaya Nagar – Pathanpura": {
+      A: "शाह अफसर शाह",
+      B: "Om Pawar",
+      C: "Raj Kulkarni",
+      D: "Sneha Patil"
+    },
 
-    "Alim Nagar – Rehmat Nagar": "मरियम बानो शाह इस्माईल",
+    "Alim Nagar – Rehmat Nagar": {
+      A: "मरियम बानो शाह इस्माईल",
+      B: "Rahul Pawar",
+      C: "Amit Kulkarni",
+      D: "Neha Sharma"
+    },
 
-    "Gadgadeshwar – Ravi Nagar": "आशिष अवतके",
+    "Gadgadeshwar – Ravi Nagar": {
+      A: "आशिष अवतके",
+      B: "Om Deshmukh",
+      C: "Raj Patil",
+      D: "Pooja Jadhav"
+    },
 
-    "Rajapeth – Shri Sant Kanwarram": "नंदा सावदे",
+    "Rajapeth – Shri Sant Kanwarram": {
+      A: "नंदा सावदे",
+      B: "Rahul Kulkarni",
+      C: "Amit Pawar",
+      D: "Sneha Jadhav"
+    },
 
-    "Sai Nagar – Akoli": "चेतन गावंडे",
+    "Sai Nagar – Akoli": {
+      A: "चेतन गावंडे",
+      B: "Om Sharma",
+      C: "Raj Deshmukh",
+      D: "Neha Pawar"
+    },
 
-    "Sutgirni – Samara Nagar": "संजय गव्हाळे",
+    "Sutgirni – Samara Nagar": {
+      A: "संजय गव्हाळे",
+      B: "Rahul Deshmukh",
+      C: "Amit Sharma",
+      D: "Pooja Pawar"
+    },
 
-    "Juni Wasti – Badnera": "मीरा कांबळे",
+    "Juni Wasti – Badnera": {
+      A: "मीरा कांबळे",
+      B: "Om Patil",
+      C: "Raj Jadhav",
+      D: "Sneha Sharma"
+    },
 
-    "Navi Wasti – Badnera": "रजनी डोंगरे"
+    "Navi Wasti – Badnera": {
+      A: "रजनी डोंगरे",
+      B: "Rahul Jadhav",
+      C: "Amit Patil",
+      D: "Neha Kulkarni"
+    }
 
   }
 
