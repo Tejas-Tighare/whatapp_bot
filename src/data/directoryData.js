@@ -3,157 +3,155 @@ export const DIRECTORY = {
   Amravati: {
 
     "Shegaon – Rahatgaon": {
-      A: "कल्याणी डांके",
-      B: "चंद्रकांत खेड़कर",
-      C: "वंदना मडये",
-      D: "प्रशांत धर्मळे"
+      A: "Kalyani Ingale",
+      B: "Chandrakant Khedkar",
+      C: "Vandana Madaghe",
+      D: "Prashant Dharmale"
     },
 
     "Sant Gadgebaba – P.D.M.C.": {
-      A: "विनोद तानवे",
-      B: "मीना सराई",
-      C: "सुरेखा डुंगरे",
-      D: "प्रमोद महल्ले"
+      A: "Vinod Tanbes",
+      B: "Meena Savai",
+      C: "Surekha Lungare",
+      D: "Pramod Mahalle"
     },
 
     "Navsari – Hardik Colony": {
-      A: "अनीता काळे",
-      B: "प्रशांत महल्ले",
-      C: "लुबना तबीवर से. मरकूम",
-      D: "श्रेफिको देशमुख"
+      A: "Anita Kale",
+      B: "Prashant Mahalle",
+      C: "Lubna Tanveer Makhdum",
+      D: "Rushikesh Deshmukh"
     },
 
     "Jamil Colony – Lalkhadi": {
-      A: "अहमद शा. इकबाल शा",
-      B: "फरद ताज स. मीर अली",
-      C: "कुबर बानो कासम अली",
-      D: "सलाउद्दीन इकरामुद्दीन"
+      A: "Ahmed Shah Iqbal Shah",
+      B: "Farad naj Mir Ali",
+      C: "Kubra Bano Karamat Ali",
+      D: "Salauddin Ikramuddin"
     },
 
     "Mahendra Colony – New Cotton Market": {
-      A: "सुनीता लोणारे",
-      B: "माधुरी ठाकरे",
-      C: "राजश्री जठळे",
-      D: "धीरज हिवसे"
+      A: "Sunita Lonare",
+      B: "Madhuri Thakre",
+      C: "Rajshri Jathale",
+      D: "Dhiraj Hivse"
     },
 
     "Vilas Nagar – Morbag – Gawalipura": {
-      A: "संजय नरवणे",
-      B: "पूजा अग्रवाल",
-      C: "दीपक साहू",
-      D: "रेखा तावडे"
+      A: "Sanjay Naravane",
+      B: "Pooja Agrawal",
+      C: "Deepak Sahu",
+      D: "Rekha Taywade"
     },
 
     "Jawahar Stadium – Bhim Nagar": {
-      A: "सोनाली नाईक",
-      B: "मनीष बजाज",
-      C: "स्नेहा तुल्ला",
-      D: "श्रीचंद तेजवानी"
+      A: "Sonali Naik",
+      B: "Manish Bajaj",
+      C: "Sneha Lulla",
+      D: "Shrichand Tejwani"
     },
 
     "Jog Stadium – Chaparashipura": {
-      A: "माला गवई",
-      B: "अर्चना आगाम",
-      C: "असमा खान फिरोज खान",
-      D: "बाबू रोहिदास"
+      A: "Malata Gawai",
+      B: "Archana Aatram",
+      C: "Asma Khan Firoz Khan",
+      D: "Bablu Shekhavat"
     },
 
     "S.R.P.F. – Wadali – Amravati University": {
-      A: "विशाल वानखेडे",
-      B: "पुष्पा गुहे",
-      C: "पंचफुला पंधाणा",
-      D: "Om Patil"
+      A: "Vishal Wankhede",
+      B: "Pushpa Guhe",
+      C: "Panchphula chauhan",
     },
 
     "Benoda – Bhimtekadi – Dastur Nagar": {
-      A: "मधुरा काहळे",
-      B: "अर्चना पाटील",
-      C: "मंगेश मनोरे",
-      D: "अविनाश माईंडकर"
+      A: "Madhura Kahale",
+      B: "Archana Patil",
+      C: "Mangesh Manohare",
+      D: "Avinash Mardikar"
     },
 
     "Frezarpura – Rukhmini Nagar": {
-      A: "विद्या माटे",
-      B: "Raj Sharma",
-      C: "Amit Patil",
-      D: "Neha Deshmukh"
+      A: "Vidya Mate",
+      B: "Ismail Laluvale",
+      C: "Nutan Bhujade",
+      D: "Sachin Vaidya"
     },
 
     "Swami Vivekanand Colony – Belpura": {
-      A: "राधा कुरले",
-      B: "Rahul Patil",
-      C: "Pooja Sharma",
-      D: "Sneha Kulkarni"
+      A: "Radha Kuril",
+      B: "Preeti Revane",
+      C: "Smita Suryavanshi",
+      D: "Pradeep Hivse"
     },
 
     "Ambapeth – Gaurakshan – Namuna": {
-      A: "मिलिंद बाम्बळ",
-      B: "Om Jadhav",
-      C: "Raj Pawar",
-      D: "Neha Patil"
+      A: "Milind Bambal",
+      B: "Lavina Harshe",
+      C: "Swati Kulkarni",
+      D: "Ratan Dendule"
     },
 
     "Jawahar Gate – Budhwara": {
-      A: "विलास इंगोले",
-      B: "Rahul Sharma",
-      C: "Amit Deshmukh",
-      D: "Pooja Patil"
+      A: "Vilas Ingole",
+      B: "Sunita Bhele",
+      C: "Lalita Ratava",
+      D: "Sanjay Shirbhate"
     },
 
     "Chhaya Nagar – Pathanpura": {
-      A: "शाह अफसर शाह",
-      B: "Om Pawar",
-      C: "Raj Kulkarni",
-      D: "Sneha Patil"
+      A: "Shah Afsar Shah",
+      B: "Syed Rashad Ali",
+      C: "Khan Asiya Anjum Waheed",
     },
 
     "Alim Nagar – Rehmat Nagar": {
-      A: "मरियम बानो शाह इस्माईल",
-      B: "Rahul Pawar",
-      C: "Amit Kulkarni",
-      D: "Neha Sharma"
+      A: "Mariam Bano Shah Ismail",
+      B: "unknown",
+      C: "Mohd Rehan Mohd Yasin",
+      D: "she Hameed she Wahed"
     },
 
     "Gadgadeshwar – Ravi Nagar": {
-      A: "आशिष अवतके",
-      B: "Om Deshmukh",
-      C: "Raj Patil",
-      D: "Pooja Jadhav"
+      A: "Ashish Atkare",
+      B: "Yogesh Vijaykar",
+      C: "Priyanka Patane",
+      D: "Archana Pande"
     },
 
     "Rajapeth – Shri Sant Kanwarram": {
-      A: "नंदा सावदे",
-      B: "Rahul Kulkarni",
-      C: "Amit Pawar",
-      D: "Sneha Jadhav"
+      A: "Nanda Savde",
+      B: "Prashant Wankhede",
+      C: "Padmaja Kondanya",
+      D: "Mahesh Mulchandani"
     },
 
     "Sai Nagar – Akoli": {
-      A: "चेतन गावंडे",
-      B: "Om Sharma",
-      C: "Raj Deshmukh",
-      D: "Neha Pawar"
+      A: "Chetan Gavande",
+      B: "Manjusha Jadhav",
+      C: "Lata Deshmukh",
+      D: "Sachin Bhende"
     },
 
     "Sutgirni – Samara Nagar": {
-      A: "संजय गव्हाळे",
-      B: "Rahul Deshmukh",
-      C: "Amit Sharma",
-      D: "Pooja Pawar"
+      A: "Sanjay Gavhale",
+      B: "Sumati Thoke",
+      C: "Sharada Khonde",
+      D: "Rajendra Tayade"
     },
 
     "Juni Wasti – Badnera": {
-      A: "मीरा कांबळे",
-      B: "Om Patil",
-      C: "Raj Jadhav",
-      D: "Sneha Sharma"
+      A: "Meera Kamble",
+      B: "Najeeb Khan",
+      C: "Karim Khan",
+      D: "Nana Amle"
     },
 
     "Navi Wasti – Badnera": {
-      A: "रजनी डोंगरे",
-      B: "Rahul Jadhav",
-      C: "Amit Patil",
-      D: "Neha Kulkarni"
+      A: "Rajni Dongre",
+      B: "Ajay Jaiswal",
+      C: "Gauri Meghwani",
+      D: "Kishor Jadhav"
     }
 
   }
