@@ -88,7 +88,7 @@ s.step="LANG";
 
 await sendImage(
 user,
-"https://whatapp-bot-s5br.onrender.com/poster3.jpg",
+"https://whatapp-bot-s5br.onrender.com/poster1.jpg",
 lang.welcome
 );
 
